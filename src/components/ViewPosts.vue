@@ -36,9 +36,37 @@ export default {
     },
     methods: {
         editPost(id) {
-            
+            // find post by ID and load its data into the modal
+            const post = this.posts.find((p) => p.id === id);
+            if (post) {
+                this.editPostId = id;
+                this.entry = post.entry;
+                this.mood = post.mood;
+                this.showEditPost = true;
+            }
         },
         updatePost(event) {
+            event.preventDefault();
+
+            axios.post(`${this.baseUrl}/updatePost?id=${this.editPostId}`, {
+                        'subject': this.subject,
+                        'entry': this.entry,
+                        'mood': this.mood
+                }).then(response=>{
+                    this.outputMsg = response.data.message
+                }).catch(error=> {
+                    console.log(error)
+            }).finally(()=>{
+                const post = this.posts.find((p) => p.id === this.editPostId);
+                if (post) {
+                    post.entry = this.entry
+                    post.mood = this.mood;
+                }
+                this.editPostId = "";
+                this.entry = "";
+                this.mood = "";
+                this.showEditPost = false;
+            })
             
         }
     }
@@ -61,7 +89,7 @@ export default {
                     <td>{{ post.id }}</td>
                     <td>{{ post.entry }}</td>
                     <td>{{ post.mood }}</td>
-                    <td><button>Edit</button></td>
+                    <td><button @click="editPost(post.id)">Edit</button></td>
                 </tr>
             </tbody>
 
@@ -82,7 +110,7 @@ export default {
                             <option v-for="mood in moods" :value="mood">{{ mood }}</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Update Post</button>
+                    <button type="submit" class="btn btn-primary" @click="updatePost">Update Post</button>
                 </form>
             </div>
         </div>
